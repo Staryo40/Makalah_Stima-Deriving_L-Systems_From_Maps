@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def plot_patterns(patterns, ax=None, show_labels=True):
+def plot_patterns(patterns, ax=None):
     """
     Plot a list of branching patterns (from extract_patterns) in matplotlib.
 
@@ -18,8 +18,6 @@ def plot_patterns(patterns, ax=None, show_labels=True):
     for i, pattern in enumerate(patterns):
         origin = np.array(pattern.position)
         # ax.plot(*origin, 'o', color='blue')
-        if show_labels:
-            ax.text(*origin, str(i), fontsize=8, ha='right', va='bottom')
 
         for branch in pattern.branches:
             angle_rad = np.radians(branch.angle)

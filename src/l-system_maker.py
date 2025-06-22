@@ -3,89 +3,81 @@ from classes import *
 
 import turtle
 import math
+import re
 
-def draw_lsystem(instructions, step=10, angle=30):
-    stack = []
 
-    for cmd in instructions:
-        if cmd == 'F':
-            turtle.forward(step)
-        elif cmd == '+':
-            turtle.left(angle)
-        elif cmd == '-':
-            turtle.right(angle)
-        elif cmd == '[':
-            # Push state: position and heading
-            pos = turtle.position()
-            heading = turtle.heading()
-            stack.append((pos, heading))
-        elif cmd == ']':
-            # Pop state
-            pos, heading = stack.pop()
-            turtle.penup()
-            turtle.setposition(pos)
-            turtle.setheading(heading)
-            turtle.pendown()
+def quantize_angle(angle, unit=15):
+    return round(angle / unit) * unit
 
-def simplify_branch_to_lsystem(branch, angle_step=30):
-    """
-    Converts a branch into a simplified L-system string.
-    """
-    commands = []
+def quantize_distance(distance, unit=20):
+    return max(1, round(distance / unit))
 
-    angle = branch.angle
-    quantized_angle = round(angle / angle_step) * angle_step
-
-    # Determine direction
-    if quantized_angle > 0:
-        commands.append('+' * (abs(quantized_angle) // angle_step))
-    elif quantized_angle < 0:
-        commands.append('-' * (abs(quantized_angle) // angle_step))
-
-    # Move forward (normalize distance to one F per threshold)
-    steps = max(1, round(branch.distance / 50))  # adjust 50 for your desired scale
-    commands.append('F' * steps)
-
-    return ''.join(commands)
-
-def convert_nodes_to_lsystem(nodes, angle_step=30):
-    """
-    Generates a basic L-system axiom and rule set from SolutionNodes.
-    """
-    axiom = "X"
-    rules = {
-        "X": ""
-    }
-
-    for idx, node in enumerate(nodes):
-        if not node.branches:
-            continue
-        
-        rule = ""
+def create_raw_rules(nodes):
+    rules = {}
+    for node in nodes:
+        rule = ''
         for branch in node.branches:
-            segment = simplify_branch_to_lsystem(branch, angle_step)
-            rule += f"[{segment}X]"  # Recursive branching
-        rules["X"] = rule
-        break  # Only use the first branching node for simplicity
+            angle = round(branch.angle)
+            distance = round(branch.distance)
 
-    return axiom, rules
+            # Add turning (positive = left, negative = right)
+            if angle > 0:
+                rule += f'+{angle}'
+            elif angle < 0:
+                rule += f'-{abs(angle)}'
+
+            # Add forward movement
+            rule += f'F{distance}'
+
+            # Call to the target node
+            rule += f'[X{branch.target_id}]'
+
+        rules[node.id] = rule
+    return rules
+
+def filter_rules(rules):
+    # Step 1: Identify and remove empty rules
+    non_empty_rules = {rid: rule for rid, rule in rules.items() if rule.strip()}
+
+    # Step 2: Get the set of valid referenced rule IDs
+    valid_ids = set(non_empty_rules.keys())
+
+    # Step 3: Clean each rule by removing [Xn] where n not in valid_ids
+    cleaned_rules = {}
+    pattern = re.compile(r'\[X(\d+)\]')
+
+    for rid, rule in non_empty_rules.items():
+        cleaned_rule = ''
+        i = 0
+        while i < len(rule):
+            match = pattern.match(rule, i)
+            if match:
+                target_id = int(match.group(1))
+                if target_id in valid_ids:
+                    cleaned_rule += match.group(0)  # keep [Xn]
+                # else: skip it
+                i = match.end()
+            else:
+                cleaned_rule += rule[i]
+                i += 1
+        cleaned_rules[rid] = cleaned_rule
+
+    return cleaned_rules
+
 
 data = os.path.join(os.getcwd(), "data", "bandung.json")
-
 patterns = load_patterns_from_json(data)
-# plot_patterns(patterns, show_labels=False)
-# plt.show()
 
-axiom, rules = convert_nodes_to_lsystem(patterns)
-print(axiom)
-print(rules)
+raw_rules = create_raw_rules(patterns)
+filtered_rules = filter_rules(raw_rules)
 
-# turtle.speed(0)          
-# turtle.left(90)        
-# turtle.penup()
-# turtle.goto(0, -200)   
-# turtle.pendown()
+print(len(filtered_rules))
+# for i, (id, rule) in enumerate(filtered_rules.items()):
+#     if i < 10:
+#         print(f"{id}: {rule}")
 
-# lsystem_string = '[+FFFFFX][---FFFFX][---FFFFX][+FFFFFX][FX][FX]'
-# draw_lsystem(lsystem_string, step=10, angle=30)
-# turtle.done()
+
+
+
+
+    

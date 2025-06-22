@@ -1,9 +1,6 @@
 import os
 import math
 import json
-import osmnx as ox
-import networkx as nx
-from shapely.geometry import LineString, Point
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -62,6 +59,20 @@ def extract_patterns(G):
 
     return patterns
 
+def remap_node_ids(patterns):
+    # Step 1: Build old_id → new_id mapping
+    old_ids = [node.id for node in patterns]
+    id_map = {old_id: new_id for new_id, old_id in enumerate(old_ids, start=1)}
+
+    # Step 2: Update each node and its branches
+    for node in patterns:
+        node.id = id_map[node.id]
+        for branch in node.branches:
+            if branch.target_id in id_map:
+                branch.target_id = id_map[branch.target_id]
+
+    return patterns
+
 # pos_s = (6582675165, 9232478.797442723)
 # pos_other = (794048.9783622319, 9234230.572373135)
 # a1 = angle_from(pos_s, pos_other)
@@ -79,7 +90,8 @@ positions = {n: (data['x'], data['y']) for n, data in G.nodes(data=True)}
 
 # Run and print result
 patterns = extract_patterns(G)
-save_patterns_to_json(patterns, "bandung.json")
+patterns_new = remap_node_ids(patterns)
+save_patterns_to_json(patterns_new, "bandung_new.json")
 
 # print(len(patterns))
 # plot_patterns(patterns, show_labels=False)
