@@ -13,9 +13,10 @@ def save_patterns_to_json(patterns, filename):
 
     for pattern in patterns:
         node_dict = {
+            'id': pattern.id,
             'position': list(pattern.position),
             'branches': [
-                {'angle': branch.angle, 'distance': branch.distance}
+                {'target': branch.target_id, 'angle': branch.angle, 'distance': branch.distance}
                 for branch in pattern.branches
             ]
         }
@@ -25,7 +26,7 @@ def save_patterns_to_json(patterns, filename):
         json.dump(serializable_patterns, f, indent=2)
 
     print(f"Saved {len(patterns)} patterns to {filename}")
-    
+
 def load_patterns_from_json(filename):
     """
     Deserialize a JSON file into a list of SolutionNode instances.
@@ -41,8 +42,8 @@ def load_patterns_from_json(filename):
 
     patterns = []
     for node_dict in data:
-        node = SolutionNode(tuple(node_dict['position']))
-        node.branches = [Branch(branch['angle'], branch['distance']) for branch in node_dict['branches']]
+        node = SolutionNode(node_dict['id'], tuple(node_dict['position']))
+        node.branches = [Branch(branch['target'], branch['angle'], branch['distance']) for branch in node_dict['branches']]
         patterns.append(node)
 
     print(f"Loaded {len(patterns)} patterns from {filename}")

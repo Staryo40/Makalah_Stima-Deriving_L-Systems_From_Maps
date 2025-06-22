@@ -133,13 +133,13 @@ for u, v, key, data in G.edges(keys=True, data=True):
             print(f"  Number of Vertices: {num_vertices}")
             break 
 
-if found_data == None:
-    print(f"Max: {length}")
-    print("No edge fit the bill")
-    sys.exit()
+# if found_data == None:
+#     print(f"Max: {length}")
+#     print("No edge fit the bill")
+#     sys.exit()
 
-line = found_data['geometry']
-plot_comparison(line)
+# line = found_data['geometry']
+# plot_comparison(line)
 # avg_distance = line.length / (1 if num_vertices <= 1 else (num_vertices - 1))
 
 # fig, ax = plt.subplots(1, 1, figsize=(8, 6))

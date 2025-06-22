@@ -32,7 +32,7 @@ def extract_patterns(G):
             continue
         visited.add(s)
         pos_s = positions[s]
-        solution = SolutionNode(pos_s)
+        solution = SolutionNode(s, pos_s)
 
         # Get connected edges (with geometry)
         connected_edges = [(u, v, k, data) for (u, v, k), data in E.items() if u == s or v == s]
@@ -44,25 +44,30 @@ def extract_patterns(G):
             other_nodes.add(tuple(pos_other))
 
             # Compute angle and distance
-            # dist = euclidean(pos_s, pos_other)
             dist = np.linalg.norm(np.array(pos_s) - np.array(pos_other))
             angle = angle_from(pos_s, pos_other)
-            solution.branches.append(Branch(angle, dist))
+            branch = Branch(other, angle, dist)
+            if branch not in solution.branches:
+                solution.branches.append(branch)
 
             # Mark other node for future exploration
-            if other in N:
-                N.remove(other)
-            visited.add(other)
+            # if other in N:
+            #     N.remove(other)
+            # visited.add(other)
 
             # Remove this edge
             del E[(u, v, k)]
-        # print(f"Start node {s} at {pos_s}, other node {other} at {pos_other}, distance = {euclidean(pos_s, pos_other)}")
 
         patterns.append(solution)
 
     return patterns
 
+# pos_s = (6582675165, 9232478.797442723)
+# pos_other = (794048.9783622319, 9234230.572373135)
+# a1 = angle_from(pos_s, pos_other)
+# a2 = angle_from(pos_other, pos_s)
 
+# print(f"a1 = {a1}, a2 = {a2}, diff = {abs(a1 - (a2 + 180) % 360)}")
 
 # Load the Bandung graph
 path = os.path.join(os.getcwd(), "data", "bandung.graphml")
@@ -74,8 +79,8 @@ positions = {n: (data['x'], data['y']) for n, data in G.nodes(data=True)}
 
 # Run and print result
 patterns = extract_patterns(G)
-# save_patterns_to_json(patterns, "bandung.json")
+save_patterns_to_json(patterns, "bandung.json")
 
-print(len(patterns))
-plot_patterns(patterns, show_labels=False)
-plt.show()
+# print(len(patterns))
+# plot_patterns(patterns, show_labels=False)
+# plt.show()
