@@ -73,7 +73,7 @@ def remove_rule_numerics(rules):
     
     return referential_rules
 
-def generalize_rule(rules, split=False):
+def generalize_rule(rules, original_id=False, split=False):
     referential_rules = remove_rule_numerics(rules)
     raw_non_referential = {}
     referential = {}
@@ -123,26 +123,35 @@ def generalize_rule(rules, split=False):
         if id >= ref_start:
             new_to_shape[id] = re.sub(r'X(\d+)', lambda m: f"X{referential_to_new[int(m.group(1))]}" if int(m.group(1)) in referential_to_new else m.group(0), rule)
 
+    if original_id:
+        new_to_referential = {v: k for k, v in referential_to_new.items()}
+        for id, rule in new_to_shape.items():
+            if id >= ref_start:
+                new_to_shape[id] = (new_to_referential[id], rule)
+            else:
+                new_to_shape[id] = (-1, rule) 
+                
     if split:
         return (ref_start-1, len(new_to_shape) - ref_start + 1), new_to_shape
     else:
         return new_to_shape
 
-data = os.path.join(os.getcwd(), "data", "bandung.json")
-patterns = load_patterns_from_json(data)
+if __name__ == '__ main __':
+    data = os.path.join(os.getcwd(), "data", "bandung.json")
+    patterns = load_patterns_from_json(data)
 
-raw_rules = create_raw_rules(patterns)
-filtered_rules = filter_rules(raw_rules)
-split, gen_rules = generalize_rule(filtered_rules, True)
+    raw_rules = create_raw_rules(patterns)
+    filtered_rules = filter_rules(raw_rules)
+    split, gen_rules = generalize_rule(filtered_rules, True)
 
-print(len(filtered_rules))
-for i, (id, rule) in enumerate(filtered_rules.items()):
-    if i < 10:
-        print(f"{id}: {rule}")
+    print(len(filtered_rules))
+    for i, (id, rule) in enumerate(filtered_rules.items()):
+        if i < 10:
+            print(f"{id}: {rule}")
 
-print("Non reference: " + str(split[0]))
-print("Reference: " + str(split[1]))
-print(len(gen_rules))
-for i, (id, rule) in enumerate(gen_rules.items()):
-    if i < 10:
-        print(f"{id}: {rule}")
+    print("Non reference: " + str(split[0]))
+    print("Reference: " + str(split[1]))
+    print(len(gen_rules))
+    for i, (id, rule) in enumerate(gen_rules.items()):
+        if i < 10:
+            print(f"{id}: {rule}")

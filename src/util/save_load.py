@@ -6,7 +6,7 @@ def save_patterns_to_json(patterns, filename):
     Serialize extracted patterns into a JSON file.
 
     Parameters:
-    - patterns: list of SolutionNode instances
+    - patterns: list of LocationNode instances
     - filename: path to save the JSON output
     """
     serializable_patterns = []
@@ -29,20 +29,20 @@ def save_patterns_to_json(patterns, filename):
 
 def load_patterns_from_json(filename):
     """
-    Deserialize a JSON file into a list of SolutionNode instances.
+    Deserialize a JSON file into a list of LocationNode instances.
 
     Parameters:
     - filename: path to the JSON file
 
     Returns:
-    - List of SolutionNode instances
+    - List of LocationNode instances
     """
     with open(filename, 'r') as f:
         data = json.load(f)
 
     patterns = []
     for node_dict in data:
-        node = SolutionNode(node_dict['id'], tuple(node_dict['position']))
+        node = LocationNode(node_dict['id'], tuple(node_dict['position']))
         node.branches = [Branch(branch['target'], branch['angle'], branch['distance']) for branch in node_dict['branches']]
         patterns.append(node)
 

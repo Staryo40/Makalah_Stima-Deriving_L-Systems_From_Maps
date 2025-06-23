@@ -25,7 +25,7 @@ def extract_patterns(G):
             continue
         visited.add(s)
         pos_s = positions[s]
-        solution = SolutionNode(s, pos_s)
+        solution = LocationNode(s, pos_s)
 
         # Get connected edges (with geometry)
         connected_edges = [(u, v, k, data) for (u, v, k), data in E.items() if u == s or v == s]
@@ -69,26 +69,16 @@ def remap_node_ids(patterns):
 
     return patterns
 
-# pos_s = (6582675165, 9232478.797442723)
-# pos_other = (794048.9783622319, 9234230.572373135)
-# a1 = angle_from(pos_s, pos_other)
-# a2 = angle_from(pos_other, pos_s)
+if __name__ == '__ main __':
+    # Load the Bandung graph
+    path = os.path.join(os.getcwd(), "data", "bandung.graphml")
+    G = ox.load_graphml(path)
+    G = ox.project_graph(G)
 
-# print(f"a1 = {a1}, a2 = {a2}, diff = {abs(a1 - (a2 + 180) % 360)}")
+    # Convert positions to a hashable and comparable format (tuples)
+    positions = {n: (data['x'], data['y']) for n, data in G.nodes(data=True)}
 
-# Load the Bandung graph
-path = os.path.join(os.getcwd(), "data", "bandung.graphml")
-G = ox.load_graphml(path)
-G = ox.project_graph(G)
-
-# Convert positions to a hashable and comparable format (tuples)
-positions = {n: (data['x'], data['y']) for n, data in G.nodes(data=True)}
-
-# Run and print result
-patterns = extract_patterns(G)
-patterns_new = remap_node_ids(patterns)
-save_patterns_to_json(patterns_new, "bandung_new.json")
-
-# print(len(patterns))
-# plot_patterns(patterns, show_labels=False)
-# plt.show()
+    # Run and print result
+    patterns = extract_patterns(G)
+    patterns_new = remap_node_ids(patterns)
+    save_patterns_to_json(patterns_new, "bandung_new.json")
