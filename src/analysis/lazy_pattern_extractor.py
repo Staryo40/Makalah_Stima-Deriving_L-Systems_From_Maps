@@ -1,6 +1,6 @@
 import os
 import math
-import json
+from collections import deque
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -13,7 +13,7 @@ def angle_from(p1, p2):
     return math.degrees(math.atan2(dy, dx))
 
 # Main function
-def extract_patterns(G):
+def extract_patterns(G, positions):
     visited = set()
     E = {(u, v, k): data for u, v, k, data in G.edges(keys=True, data=True) if 'geometry' in data}
     N = set(G.nodes)
@@ -43,17 +43,107 @@ def extract_patterns(G):
             if branch not in solution.branches:
                 solution.branches.append(branch)
 
-            # Mark other node for future exploration
-            # if other in N:
-            #     N.remove(other)
-            # visited.add(other)
-
             # Remove this edge
             del E[(u, v, k)]
 
         patterns.append(solution)
 
-    return patterns
+    return remap_node_ids(patterns)
+
+def bfs_extract_patterns(G, positions):
+    visited = set()
+    patterns = []
+
+    for start in G.nodes:
+        if start in visited or 'geometry' not in G.nodes[start]:
+            continue
+
+        queue = deque([start])
+        visited.add(start)
+
+        while queue:
+            s = queue.popleft()
+            pos_s = positions[s]
+            solution = LocationNode(s, pos_s)
+            connected_edges = list(G.edges(s, keys=True, data=True))
+
+            for u, v, k, data in connected_edges:
+                if 'geometry' not in data:
+                    continue
+                other = v if u == s else u
+                pos_other = positions[other]
+
+                # Compute angle and distance
+                dist = np.linalg.norm(np.array(pos_s) - np.array(pos_other))
+                angle = angle_from(pos_s, pos_other)
+                branch = Branch(other, angle, dist)
+
+                if branch not in solution.branches:
+                    solution.branches.append(branch)
+
+                if other not in visited:
+                    visited.add(other)
+                    queue.append(other)
+
+            patterns.append(solution)
+
+    return remap_node_ids(patterns)
+
+def dfs_extract_patterns(G, positions):
+    visited = set()
+    patterns = []
+
+    def dfs(s):
+        visited.add(s)
+        pos_s = positions[s]
+        solution = LocationNode(s, pos_s)
+        connected_edges = list(G.edges(s, keys=True, data=True))
+
+        for u, v, k, data in connected_edges:
+            if 'geometry' not in data:
+                continue
+            other = v if u == s else u
+            pos_other = positions[other]
+
+            dist = np.linalg.norm(np.array(pos_s) - np.array(pos_other))
+            angle = angle_from(pos_s, pos_other)
+            branch = Branch(other, angle, dist)
+
+            if branch not in solution.branches:
+                solution.branches.append(branch)
+
+            if other not in visited:
+                dfs(other)
+
+        patterns.append(solution)
+
+    for start in G.nodes:
+        if start not in visited and 'geometry' in G.nodes[start]:
+            dfs(start)
+
+    return remap_node_ids(patterns)
+
+def compare_bfs_dfs(G, positions):
+    bfs_patterns = bfs_extract_patterns(G, positions)
+    dfs_patterns = dfs_extract_patterns(G, positions)
+
+    def summarize(patterns):
+        node_count = len(patterns)
+        branch_count = sum(len(p.branches) for p in patterns)
+        return node_count, branch_count
+
+    bfs_nodes, bfs_branches = summarize(bfs_patterns)
+    dfs_nodes, dfs_branches = summarize(dfs_patterns)
+
+    print("Comparison of BFS vs DFS pattern extraction")
+    print("--------------------------------------------")
+    print(f"BFS - Nodes: {bfs_nodes}, Branches: {bfs_branches}")
+    print(f"DFS - Nodes: {dfs_nodes}, Branches: {dfs_branches}")
+    
+    if bfs_nodes != dfs_nodes or bfs_branches != dfs_branches:
+        print("Difference detected between BFS and DFS results.")
+    else:
+        print("BFS and DFS results are consistent.")
 
 def remap_node_ids(patterns):
     # Step 1: Build old_id → new_id mapping
@@ -74,11 +164,7 @@ if __name__ == '__ main __':
     path = os.path.join(os.getcwd(), "data", "bandung.graphml")
     G = ox.load_graphml(path)
     G = ox.project_graph(G)
-
-    # Convert positions to a hashable and comparable format (tuples)
     positions = {n: (data['x'], data['y']) for n, data in G.nodes(data=True)}
 
     # Run and print result
-    patterns = extract_patterns(G)
-    patterns_new = remap_node_ids(patterns)
-    save_patterns_to_json(patterns_new, "bandung_new.json")
+    compare_bfs_dfs(G, positions)

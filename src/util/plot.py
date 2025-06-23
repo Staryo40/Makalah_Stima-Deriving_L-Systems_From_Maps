@@ -17,7 +17,6 @@ def plot_patterns(patterns, ax=None):
 
     for i, pattern in enumerate(patterns):
         origin = np.array(pattern.position)
-        # ax.plot(*origin, 'o', color='blue')
 
         for branch in pattern.branches:
             angle_rad = np.radians(branch.angle)

@@ -48,3 +48,50 @@ def load_patterns_from_json(filename):
 
     print(f"Loaded {len(patterns)} patterns from {filename}")
     return patterns
+
+def save_numeric_lsystem_to_json(lsystem, filepath):
+    """
+    Save the filtered numeric L-system rules to a JSON file.
+    Format: { rule_id: rule_string }
+    """
+    with open(filepath, "w") as f:
+        json.dump(lsystem, f, indent=2)
+
+def load_numeric_lsystem_from_json(filepath):
+    """
+    Load a numeric L-system from JSON file.
+    Returns: dict[int, str]
+    """
+    with open(filepath, "r") as f:
+        data = json.load(f)
+        return {int(k): v for k, v in data.items()}
+    
+def save_referential_lsystem_to_json(split, lsystem, filepath):
+    """
+    Save the referential generalized L-system to a JSON file.
+    Format:
+    {
+        "split": [nonref_count, ref_count],
+        "rules": {
+            rule_id: [pattern_id, rule_string],
+            ...
+        }
+    }
+    """
+    output = {
+        "split": list(split),
+        "rules": {str(k): [v[0], v[1]] for k, v in lsystem.items()}
+    }
+    with open(filepath, "w") as f:
+        json.dump(output, f, indent=2)
+
+def load_referential_lsystem_from_json(filepath):
+    """
+    Load a referential L-system from JSON file.
+    Returns: (tuple[int, int], dict[int, tuple[int, str]])
+    """
+    with open(filepath, "r") as f:
+        data = json.load(f)
+        split = tuple(data["split"])
+        rules = {int(k): (v[0], v[1]) for k, v in data["rules"].items()}
+        return split, rules
