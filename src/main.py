@@ -58,29 +58,32 @@ def main_menu():
 
     choice = -1
     start = True
-    while choice < 0 and choice > 10:
+    while choice < 0 or choice > 10:
         if start:
             start = False
         else:
             invalid_input()
-        choice = int(input("Input your choice (1-9): "))
+        choice = int(input("Input your choice (1-10): "))
     
     return choice
 
 def choose_algo():
-    start = True
     print("USE BFS OR DFS?")
     print("1. BFS")
     print("2. DFS")
     print("3. Exit")
-    while (algo_choice.lower() != "bfs" and int(algo_choice) != 1 and algo_choice.lower() != "dfs" and int(algo_choice) != 2 and algo_choice.lower() != "exit" and int(algo_choice) != 3):
-        if (start):
-            start = False
+    
+    while True:
+        algo_choice = input("Algo: ").strip().lower()
+        
+        if algo_choice in ["1", "bfs"]:
+            return 1
+        elif algo_choice in ["2", "dfs"]:
+            return 2
+        elif algo_choice in ["3", "exit"]:
+            return 3
         else:
             invalid_input()
-        algo_choice = input("Algo: ")
-
-    return algo_choice
 
 def lsystem_processing(patterns):
     while True:
@@ -151,17 +154,17 @@ def process_pattern():
         algo_choice = choose_algo()
 
         clear_screen()
-        if (algo_choice.lower() == "exit" or  int(algo_choice) == 3):
+        if (algo_choice == 3):
             return
 
         patterns = {}
         exec_time = 0
-        if (algo_choice.lower() == "bfs" or  int(algo_choice) == 1):
+        if (algo_choice == 1):
             start_time = time.time()
             patterns = bfs_extract_patterns(filepath)
             end_time = time.time()
             exec_time = end_time - start_time
-        elif (algo_choice.lower() == "dfs" or  int(algo_choice) == 2):
+        elif (algo_choice == 2):
             start_time = time.time()
             patterns = dfs_extract_patterns(filepath)
             end_time = time.time()
@@ -170,9 +173,9 @@ def process_pattern():
         node, branch = summarize_patterns(patterns)
 
         print("PATTERN PROCESSED!")
-        if (algo_choice.lower() == "bfs" or  int(algo_choice) == 1):
+        if (algo_choice == 1):
             print(f"Using BFS took {exec_time} seconds")
-        elif (algo_choice.lower() == "dfs" or  int(algo_choice) == 2):
+        elif (algo_choice == 2):
             print(f"Using DFS took {exec_time} seconds")
         print(f"Pattern - Node: {node}, Branch: {branch}")
         save = input("Save pattern as json (y/n)? ")
@@ -300,7 +303,7 @@ def plot_pattern_lsystem_main():
 def download_geo_graphml_main():
     dir = os.path.join(datapath, "graphml")
     print("DOWNLOADING REAL GEOGRAPHICAL STREETS")
-    print("📍 Please enter a location in a format like:")
+    print("Please enter a location in a format like:")
     print("   - 'Bandung, Indonesia'")
     print("   - 'New York City, New York, USA'")
     print("   - 'Tokyo, Japan'")
