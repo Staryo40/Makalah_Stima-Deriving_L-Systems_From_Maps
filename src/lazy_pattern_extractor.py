@@ -7,11 +7,7 @@ import numpy as np
 from classes import *
 from util import *
 
-# Helper: Euclidean distance
-def euclidean(p1, p2):
-    return math.hypot(p2[0] - p1[0], p2[1] - p1[1])
-
-# Helper: angle in degrees from p1 to p2
+# Angle from source to target point, + means counter clockwise, - means clockwise from the origin of positive x-axis
 def angle_from(p1, p2):
     dx, dy = p2[0] - p1[0], p2[1] - p1[1]
     return math.degrees(math.atan2(dy, dx))
