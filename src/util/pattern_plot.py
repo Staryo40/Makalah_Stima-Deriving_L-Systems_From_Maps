@@ -6,16 +6,14 @@ def plot_patterns(patterns, ax=None):
     Plot a list of branching patterns (from extract_patterns) in matplotlib.
 
     Parameters:
-    - patterns: list of dicts, each with:
-        - 'position': (x, y)
-        - 'branches': list of {'angle': float (degrees), 'distance': float}
+    - patterns: list of LocationNode objects (with position and branches)
     - ax: optional matplotlib axes to draw on
     - show_labels: whether to label nodes with indices
     """
     if ax is None:
         fig, ax = plt.subplots(figsize=(10, 10))
 
-    for i, pattern in enumerate(patterns):
+    for pattern in patterns:
         origin = np.array(pattern.position)
 
         for branch in pattern.branches:
@@ -29,4 +27,5 @@ def plot_patterns(patterns, ax=None):
 
     ax.set_aspect('equal')
     ax.grid(True)
-    ax.set_title("Extracted L-system-like Branch Patterns")
+    ax.set_title("Raw GraphML Patterns from Nodes")
+    plt.show()

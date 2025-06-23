@@ -1,5 +1,12 @@
 from classes import *
 import json
+import osmnx as ox
+
+def load_gposition_from_graphml(filepath):
+    G = ox.load_graphml(filepath)
+    G = ox.project_graph(G)
+    positions = {n: (data['x'], data['y']) for n, data in G.nodes(data=True)}
+    return G, positions
 
 def save_patterns_to_json(patterns, filename):
     """

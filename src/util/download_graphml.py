@@ -2,9 +2,7 @@ import osmnx as ox
 import os
 import matplotlib.pyplot as plt
 
-datapath = os.path.join(os.getcwd(), "data")
-
-def download_street_graphml(geo_name, filename):
+def download_street_graphml(geo_name, datapath, filename):
     if not filename.endswith(".graphml"):
         filename += ".graphml"
 

@@ -1,6 +1,6 @@
 import os
-import math
-from collections import deque
+import math, time
+from collections import deque, defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -50,12 +50,22 @@ def extract_patterns(G, positions):
 
     return remap_node_ids(patterns)
 
+def preprocess_edges(G):
+    """Preprocess edges with geometry into a node-to-edges map."""
+    E = {(u, v, k): data for u, v, k, data in G.edges(keys=True, data=True) if 'geometry' in data}
+    node_to_edges = defaultdict(list)
+    for (u, v, k), data in E.items():
+        node_to_edges[u].append((u, v, k, data))
+        node_to_edges[v].append((u, v, k, data))
+    return node_to_edges
+
 def bfs_extract_patterns(G, positions):
     visited = set()
     patterns = []
+    node_to_edges = preprocess_edges(G)
 
     for start in G.nodes:
-        if start in visited or 'geometry' not in G.nodes[start]:
+        if start in visited or start not in node_to_edges:
             continue
 
         queue = deque([start])
@@ -65,19 +75,16 @@ def bfs_extract_patterns(G, positions):
             s = queue.popleft()
             pos_s = positions[s]
             solution = LocationNode(s, pos_s)
-            connected_edges = list(G.edges(s, keys=True, data=True))
 
-            for u, v, k, data in connected_edges:
-                if 'geometry' not in data:
-                    continue
+            for u, v, k, data in node_to_edges[s]:
                 other = v if u == s else u
+                if other not in positions:
+                    continue
                 pos_other = positions[other]
 
-                # Compute angle and distance
                 dist = np.linalg.norm(np.array(pos_s) - np.array(pos_other))
                 angle = angle_from(pos_s, pos_other)
                 branch = Branch(other, angle, dist)
-
                 if branch not in solution.branches:
                     solution.branches.append(branch)
 
@@ -92,48 +99,56 @@ def bfs_extract_patterns(G, positions):
 def dfs_extract_patterns(G, positions):
     visited = set()
     patterns = []
+    node_to_edges = preprocess_edges(G)
 
     def dfs(s):
-        visited.add(s)
         pos_s = positions[s]
         solution = LocationNode(s, pos_s)
-        connected_edges = list(G.edges(s, keys=True, data=True))
 
-        for u, v, k, data in connected_edges:
-            if 'geometry' not in data:
-                continue
+        for u, v, k, data in node_to_edges[s]:
             other = v if u == s else u
+            if other not in positions:
+                continue
             pos_other = positions[other]
 
             dist = np.linalg.norm(np.array(pos_s) - np.array(pos_other))
             angle = angle_from(pos_s, pos_other)
             branch = Branch(other, angle, dist)
-
             if branch not in solution.branches:
                 solution.branches.append(branch)
 
             if other not in visited:
+                visited.add(other)
                 dfs(other)
 
         patterns.append(solution)
 
     for start in G.nodes:
-        if start not in visited and 'geometry' in G.nodes[start]:
+        if start not in visited and start in node_to_edges:
+            visited.add(start)
             dfs(start)
 
     return remap_node_ids(patterns)
 
+
+def summarize_patterns(patterns):
+    node_count = len(patterns)
+    branch_count = sum(len(p.branches) for p in patterns)
+    return node_count, branch_count
+
 def compare_bfs_dfs(G, positions):
+    bfs_start_time = time.time()
     bfs_patterns = bfs_extract_patterns(G, positions)
+    bfs_end_time = time.time()
+    print(f"Finished BFS pattern extraction in {bfs_end_time - bfs_start_time}")
+
+    dfs_start_time = time.time()
     dfs_patterns = dfs_extract_patterns(G, positions)
+    dfs_end_time = time.time()
+    print(f"Finished DFS pattern extraction in {dfs_end_time - dfs_start_time}")
 
-    def summarize(patterns):
-        node_count = len(patterns)
-        branch_count = sum(len(p.branches) for p in patterns)
-        return node_count, branch_count
-
-    bfs_nodes, bfs_branches = summarize(bfs_patterns)
-    dfs_nodes, dfs_branches = summarize(dfs_patterns)
+    bfs_nodes, bfs_branches = summarize_patterns(bfs_patterns)
+    dfs_nodes, dfs_branches = summarize_patterns(dfs_patterns)
 
     print("Comparison of BFS vs DFS pattern extraction")
     print("--------------------------------------------")
