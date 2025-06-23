@@ -6,9 +6,6 @@ class Branch:
         self.target_id = target_id
         self.angle = angle
         self.distance = distance
-
-    def __repr__(self):
-        return f"Branch(angle={self.angle:.2f}, distance={self.distance:.2f})"
     
     def __eq__(self, other):
         return isinstance(other, Branch) and \
@@ -21,8 +18,8 @@ class Branch:
             round(self.distance, 6)
         ))
     
-    def print(self):
-        print(f"→ Target ID: {self.target_id}, Angle: {self.angle:.2f}, Distance: {self.distance:.2f}")
+    def __str__(self):
+        return f"→ Target ID: {self.target_id}, Angle: {self.angle:.2f}, Distance: {self.distance:.2f}"
 
 # Solution node
 class LocationNode:
@@ -30,15 +27,16 @@ class LocationNode:
         self.id = id
         self.position = position
         self.branches = []
-
-    def __repr__(self):
-        return f"SolutionNode(position={self.position}, branches={self.branches})"
     
-    def print(self):
-        print(f"Node ID: {self.id}, Position: {self.position}")
+    def __str__(self):
+        result = f"Node ID: {self.id}, Position: {self.position}\n"
         if self.branches:
-            print("  Branches:")
-            for b in self.branches:
-                print(f"    → Target ID: {b.target_id}, Angle: {b.angle:.2f}, Distance: {b.distance:.2f}")
+            result += "  Branches:\n"
+            length = len(self.branches)
+            for i, b in enumerate(self.branches):
+                line = f"    → Target ID: {b.target_id}, Angle: {b.angle:.2f}, Distance: {b.distance:.2f}"
+                result += line + ("\n" if i < length - 1 else "")
         else:
-            print("  (No branches)")
+            result += "  (No branches)"
+        
+        return result

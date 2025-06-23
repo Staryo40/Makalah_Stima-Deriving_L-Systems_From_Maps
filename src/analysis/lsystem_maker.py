@@ -55,10 +55,15 @@ def filter_rules(rules):
                 target_id = int(match.group(1))
                 if target_id in valid_ids:
                     cleaned_rule += match.group(0)
+                else:
+                    cleaned_rule += '[]' 
                 i = match.end()
             else:
                 cleaned_rule += rule[i]
                 i += 1
+        if cleaned_rule.endswith('[]'):
+            cleaned_rule = cleaned_rule[:-2]
+
         cleaned_rules[rid] = cleaned_rule
 
     return cleaned_rules
@@ -130,7 +135,7 @@ def generalize_rule(rules, original_id=False, split=False):
                 new_to_shape[id] = (new_to_referential[id], rule)
             else:
                 new_to_shape[id] = (-1, rule) 
-                
+
     if split:
         return (ref_start-1, len(new_to_shape) - ref_start + 1), new_to_shape
     else:
