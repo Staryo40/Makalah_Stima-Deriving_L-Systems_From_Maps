@@ -9,7 +9,7 @@ def main(mode, filename=None):
         if not filename:
             print("Missing filepath for 'compare_algorithm' mode.")
             return
-        filepath = os.path.join(datapath, filename)
+        filepath = os.path.join(datapath, "graphml", filename)
         G, positions = load_gposition_from_graphml(filepath)
         print("Finished loading graphml data")
         compare_bfs_dfs(G, positions)
@@ -18,7 +18,7 @@ def main(mode, filename=None):
         if not filename:
             print("Missing filepath for 'normal_extract' mode.")
             return
-        filepath = os.path.join(datapath, filename)
+        filepath = os.path.join(datapath, "graphml", filename)
         G, positions = load_gposition_from_graphml(filepath)
         print("Finished loading graphml data")
 
@@ -34,7 +34,7 @@ def main(mode, filename=None):
         if not filename:
             print("Missing filepath for 'plot_bfs' mode.")
             return
-        filepath = os.path.join(datapath, filename)
+        filepath = os.path.join(datapath, "graphml", filename)
         G, positions = load_gposition_from_graphml(filepath)
         print("Finished loading graphml data")
         
@@ -52,7 +52,7 @@ def main(mode, filename=None):
         if not filename:
             print("Missing filepath for 'plot_dfs' mode.")
             return
-        filepath = os.path.join(datapath, filename)
+        filepath = os.path.join(datapath, "graphml", filename)
         G, positions = load_gposition_from_graphml(filepath)
         print("Finished loading graphml data")
 
