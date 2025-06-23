@@ -147,7 +147,7 @@ if __name__ == '__ main __':
 
     raw_rules = create_raw_rules(patterns)
     filtered_rules = filter_rules(raw_rules)
-    split, gen_rules = generalize_rule(filtered_rules, True)
+    split, gen_rules = generalize_rule(filtered_rules, original_id=True, split=True)
 
     print(len(filtered_rules))
     for i, (id, rule) in enumerate(filtered_rules.items()):

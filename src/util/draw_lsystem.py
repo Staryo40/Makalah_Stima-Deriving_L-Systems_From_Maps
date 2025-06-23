@@ -118,6 +118,38 @@ def draw_virtual_lsystem(gen_rules, split, angle_unit=15, dist_unit=50):
     ax.set_title("Virtual Referential L-System")
     plt.show()
 
+def draw_pattern_and_numeric_lsystem(patterns, rules):
+    id_to_pos = {p.id: p.position for p in patterns}
+    visited = set()
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+
+    # --- Left: Raw Patterns ---
+    for pattern in patterns:
+        origin = np.array(pattern.position)
+
+        for branch in pattern.branches:
+            angle_rad = np.radians(branch.angle)
+            dx = branch.distance * np.cos(angle_rad)
+            dy = branch.distance * np.sin(angle_rad)
+            ax1.arrow(origin[0], origin[1], dx, dy,
+                      head_width=0.5, head_length=0.8,
+                      length_includes_head=True, fc='orange', ec='orange')
+
+    ax1.set_aspect('equal')
+    ax1.grid(True)
+    ax1.set_title("Raw GraphML Patterns from Nodes")
+
+    # --- Right: Numeric L-System ---
+    for id, rule in rules.items():
+        interpret_numeric_rule(rules, visited, id_to_pos, id, rule, ax2)
+
+    ax2.set_aspect('equal')
+    ax2.set_title("Numeric L-System Visualization")
+
+    plt.tight_layout()
+    plt.show()
+
 if __name__ == '__ main __':
     data = os.path.join(os.getcwd(), "data", "bandung.json")
     patterns = load_patterns_from_json(data)
