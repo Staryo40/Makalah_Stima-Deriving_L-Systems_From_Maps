@@ -1,7 +1,6 @@
-import os
+import os, time
 from analysis import *
 from util import *
-import threading
 
 datapath = os.path.join(os.getcwd(), "data")
 
@@ -123,7 +122,7 @@ def lsystem_processing(patterns):
             if i < 5:
                 print(f"{id}: {rule}")
     elif (choice == 2):
-        path = os.path.join(datapath, "numeric_lsystem", filename)
+        path = os.path.join(datapath, "reference_lsystem", filename)
         save_referential_lsystem_to_json(split, gen_rules, path)
 
         print("Successfully saved Referential L-System")
@@ -153,20 +152,23 @@ def process_pattern():
 
         algo_choice = choose_algo()
 
-        clear_screen()
         if (algo_choice == 3):
             return
-
+        
+        print("Processing...")
         patterns = {}
         exec_time = 0
+        G, position = load_gposition_from_graphml(filepath)
         if (algo_choice == 1):
             start_time = time.time()
-            patterns = bfs_extract_patterns(filepath)
+            # patterns = bfs_extract_patterns(G, position)
+            patterns = optimized_extract_patterns(G, position)
             end_time = time.time()
             exec_time = end_time - start_time
         elif (algo_choice == 2):
             start_time = time.time()
-            patterns = dfs_extract_patterns(filepath)
+            # patterns = dfs_extract_patterns(G, position)
+            patterns = optimized_extract_patterns(G, position)
             end_time = time.time()
             exec_time = end_time - start_time
         
@@ -224,8 +226,8 @@ def plot_pattern_main():
         path = os.path.join(dir, file)
         patterns = load_patterns_from_json(path)
         print("Plotting pattern...")
-        t = threading.Thread(target=plot_patterns, args=(patterns,))
-        t.start()
+        plot_patterns(patterns)
+        print("Close plot to continue program")
 
         press_back()
         input()
@@ -267,11 +269,10 @@ def plot_lsystem_main():
         split, gen_rules = generalize_rule(filtered_rules, original_id=True, split=True)
         print("Plotting l-system...")
         if (choice == 1):
-            t = threading.Thread(target=draw_numeric_lsystem, args=(filtered_rules, patterns))
-            t.start()
+            draw_numeric_lsystem(filtered_rules, patterns)
         elif (choice == 2):
-            t = threading.Thread(target=draw_virtual_lsystem, args=(gen_rules, split))
-            t.start()
+            draw_virtual_lsystem(gen_rules, split)
+        print("Close plot to continue program")
     else:
         print(f"File {file} does not exist!")
 
@@ -292,8 +293,8 @@ def plot_pattern_lsystem_main():
         filtered_rules = filter_rules(raw_rules)
 
         print("Plotting l-system and pattern...")
-        t = threading.Thread(target=draw_pattern_and_numeric_lsystem, args=(patterns, filtered_rules))
-        t.start()
+        draw_pattern_and_numeric_lsystem(patterns, filtered_rules)
+        print("Close plot to continue program")
     else:
         print(f"File {file} does not exist!")
 

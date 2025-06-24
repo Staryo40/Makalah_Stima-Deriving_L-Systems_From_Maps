@@ -1,4 +1,7 @@
 import turtle
+import matplotlib.pyplot as plt
+import numpy as np
+import math
 from analysis import *
 
 def interpret_numeric_rule(rules, visited, id_to_pos, start_id, rule, ax, depth=0):

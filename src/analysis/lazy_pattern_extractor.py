@@ -50,6 +50,44 @@ def extract_patterns(G, positions):
 
     return remap_node_ids(patterns)
 
+# Optimized version
+def optimized_extract_patterns(G, positions):
+    visited = set()
+    patterns = []
+    edge_dict = defaultdict(list)
+
+    # Pre-process edges with geometry into a node-indexed dictionary
+    for u, v, k, data in G.edges(keys=True, data=True):
+        if 'geometry' in data:
+            edge_dict[u].append((u, v, k, data))
+            edge_dict[v].append((u, v, k, data))
+
+    for s in G.nodes:
+        if s in visited:
+            continue
+        visited.add(s)
+        pos_s = positions[s]
+        solution = LocationNode(s, pos_s)
+
+        for u, v, k, data in edge_dict[s]:
+            if 'geometry' not in data:
+                continue
+            other = v if u == s else u
+            if other in visited:
+                continue  # skip reverse direction to avoid double-counting
+
+            pos_other = positions[other]
+            dist = np.linalg.norm(np.array(pos_s) - np.array(pos_other))
+            angle = angle_from(pos_s, pos_other)
+            branch = Branch(other, angle, dist)
+
+            if branch not in solution.branches:
+                solution.branches.append(branch)
+
+        patterns.append(solution)
+
+    return remap_node_ids(patterns)
+
 def preprocess_edges(G):
     """Preprocess edges with geometry into a node-to-edges map."""
     E = {(u, v, k): data for u, v, k, data in G.edges(keys=True, data=True) if 'geometry' in data}
